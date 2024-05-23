@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/arrow.css">
+    <link rel="stylesheet" href="/src/main.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <title>GigaChat</title>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="empty3"></div>
+    <div class="chats">
+        <div id="chat_list"></div>
+        <form id="createChatForm">
+            <input class="inputREG" type="text" id="inputCreateChatName" placeholder="Chat name" autocomplete="off"/>
+            <input class="inputREG" type="password" id="inputCreateChatPass" placeholder="Chat password" autocomplete="off"/>
+            <div id="btnCreateChatSubmit">
+                <div class="round3">
+                    <p class="arr noselect">+</p>
+                </div>
+            </div>
+        </form>
+    </div>
+    <p id="chatWarning"></p>
+    </div>
+    <div class="main">
+        <div id="log_wrapper">
+            <form id="log">
+                <div class="log__types">
+                    <input type="button" id="signIn" value="Sign In">
+                    <input type="button" id="logIn" value="Log In" autofocus>
+                </div>
+                <div class="log__inputs">
+                    <input class="inputREG" type="text" id="input_login" name="login" placeholder="Enter login" autocomplete="off" minlength="4" maxlength="15">
+                    <input class="inputREG" type="password" id="input_password" name="password" placeholder="Enter password" autocomplete="off" minlength="4" maxlength="15">
+                </div>
+                <input type="submit" id="log__submit" value="Log In">
+            </form>
+            <p id="warning"> </p>
+        </div>
+        <div class="main__msg" id="messField"></div>
+        <form class="main__inputMsg" id="msgForm">  
+        <div class="empty"></div>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="jquery_cookie_plugin.js"></script>
+    <script src="send.js"></script>
+</body>
+</html>
