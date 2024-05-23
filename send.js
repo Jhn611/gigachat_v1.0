@@ -11,7 +11,7 @@ $(function(){
     const $chat_list = $("#chat_list");
     let $addChatWarningText;
     let $createChatForm;
-
+ 
     //inputs / buttons
     const $inputVerificationLogin = $('#input_login');
     const $inputVerificationPass = $('#input_password');
@@ -72,9 +72,22 @@ $(function(){
     });
 
     ///SOCKET///
-
-    //load chats and last messages from global
     socket.emit('get userData', {login: Name});
+/*
+    const request = () => {
+        return new Promise((resolve, reject) => {
+            socket.emit('getKey');
+            socket.on('key', (data) => {
+                resolve(data); // Resolve the promise with the key
+            });
+        });
+    };
+
+    function rsaEncrypt(text, publicKey){
+        let encryptor = new JSEncrypt();
+        encryptor.setPublicKey(publicKey);
+        return encryptor.encrypt(text);
+    }*/
 
     socket.on('error', function(data) {
         switch(data.type){
@@ -131,7 +144,14 @@ $(function(){
     function sendMsg(){
         let time = new Date().getTime();
         if( $.cookie('sendMsg') == null || time - $.cookie('sendMsg') > 500){
-            socket.emit('send message', {chatID: chatID, login: Name, message: $inputMsgForm.val(), time: getTime()} );
+            /*request().then((data) => {
+                console.log(data);
+                let hash = rsaEncrypt('hello world', data.publicKey);
+                //JSON.stringify({chatID: chatID, login: Name, message: $inputMsgForm.val(), time: getTime()})
+                console.log(hash);
+                socket.emit('send message',  {hash: hash});
+            }); */
+            socket.emit('send message', {chatID: chatID, login: Name, message: $inputMsgForm.val(), time: getTime()});
             $inputMsgForm.val('');
             $.cookie('sendMsg', time, {expires: 2, path: '/'});
             console.log("Message send at: ", time);
@@ -150,7 +170,7 @@ $(function(){
 
         if(cookie.try == 5 && time - cookie.time < 30000) $loginWarningText.text('Too many attempts, try again after 30 seconds');
         else{
-            socket.emit('login', {chatID: chatID, login: $inputVerificationLogin.val(), password: $inputVerificationPass.val(), type: veryficationType} );
+            socket.emit('login', {chatID: chatID, login: $inputVerificationLogin.val(), password: CryptoJS.MD5($inputVerificationPass.val()).toString(), type: veryficationType} );
             
             //remove ban
             if(cookie.try == 5 && time - cookie.time > 30000) $.cookie('login',  JSON.stringify( {try: 1, time: time} ), {expires: 2, path: '/'});
@@ -195,16 +215,15 @@ $(function(){
 
         $btnAddChat.on('click', (event) => {
             event.preventDefault();
-            $addChatWarningText.text('bebra');
             if(checkCorrectInput($inputAddChatID.val(), 'chat id', $addChatWarningText, 'number', [0, 20]) && checkCorrectInput($inputAddChatPass.val(), 'chat password', $addChatWarningText)){
-                socket.emit('add chat', {chatID: $inputAddChatID.val(), password: $inputAddChatPass.val(), login: Name, time: getTime()});
+                socket.emit('add chat', {chatID: $inputAddChatID.val(), password: CryptoJS.MD5($inputAddChatPass.val()).toString(), login: Name, time: getTime()});
             }
         });
 
         $btnCreateChatSubmit.on('click', (event) => {
             event.preventDefault();
             if(checkCorrectInput($inputCreateChatName.val(), 'chat name', $createChatWarningText) && checkCorrectInput($inputCreateChatPass.val(), 'chat password', $createChatWarningText)){
-                socket.emit('create chat', {name: $inputCreateChatName.val(), password: $inputCreateChatPass.val(), login: Name, time: getTime()});
+                socket.emit('create chat', {name: $inputCreateChatName.val(), password: CryptoJS.MD5($inputCreateChatPass.val()).toString(), login: Name, time: getTime()});
             }
         });
 

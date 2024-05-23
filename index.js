@@ -3,11 +3,11 @@ const { connect } = require('http2');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-
+//const NodeRSA = require('node-rsa');
 
 const {createItem, readItems, updateItem, deleteItem, createChat, checkExistItem} = require('./dbHandler');
 app.use(express.json());
-
+ 
 server.listen(3000);
 
 app.use(express.static(__dirname));
@@ -15,9 +15,27 @@ app.use(express.static(__dirname));
 app.get('/', function(request, respons) {
     respons.sendFile(__dirname + '/src/index.html');
 });
-
-connections = {}; // id-> login
+ 
+connections = {}; // id-> login 
 logins = {}; // login -> id
+//userKeys = {}; // id -> pub/priv keys
+
+/*
+function decodeRequest(id, hash){
+    let keyPrivate = new NodeRSA(userKeys[id].privateKey);
+
+    let tmp = new NodeRSA(userKeys[id].publicKey);
+    let h1 = tmp.encrypt('Hello', 'base64');
+    let h2 = tmp.encrypt('Hello', 'base64');
+
+    console.log(keyPrivate.decrypt(h1, 'utf8'));
+    console.log(keyPrivate.decrypt(h2, 'utf8'));
+
+    console.log(hash);
+
+    console.log(keyPrivate.decrypt(hash, 'utf8'));
+    return keyPrivate.decrypt(hash, 'utf8');//can't decode
+}*/
 
 io.sockets.on('connection', function(newSocket){
     console.log(`-----User ${newSocket.id} connected`); 
@@ -33,8 +51,19 @@ io.sockets.on('connection', function(newSocket){
         console.log(`User ${newSocket.id} disconnected`);
     });
 
-    // prints 
     /*
+    newSocket.on('getKey', function() {
+        const keys = new NodeRSA({b: 1024});
+        const publicKey = keys.exportKey('public');
+        const privateKey = keys.exportKey('private');
+
+        userKeys[newSocket.id] = {publicKey: publicKey, privateKey: privateKey};
+
+        io.sockets.to(newSocket.id).emit('key', {publicKey: publicKey});
+    });*/
+
+    // prints 
+    
     readItems('users', '', (err, items) => {
         if(err) console.error(err.message);
         else {
@@ -44,7 +73,7 @@ io.sockets.on('connection', function(newSocket){
                 else console.log('chats: ', items);
             }); 
         }
-    }); */
+    }); 
 
     // logIn / signIn
     newSocket.on('login', function(data){
@@ -81,7 +110,7 @@ io.sockets.on('connection', function(newSocket){
                 }
             }); 
         }else if(data.type == 1){
-            readItems('users', `WHERE login = "${data.login}" AND password = "${data.password}"`, (err, items) => {
+            readItems('users', `WHERE login = "${data.login}"`, (err, items) => {
                 console.log('LogIn: ', data);
                 if(err){
                     console.error(err.message);
@@ -123,7 +152,7 @@ io.sockets.on('connection', function(newSocket){
                     console.log(err.message);
                     io.sockets.to(newSocket.id).emit('error', {type: 'get userData', message: 'Server error! Try laterr'});
                 }else{
-                    let chatID = (user == null) ? 1 : user[0].currentChatID;
+                    let chatID = (user) ? 1 : user[0].currentChatID;
                     readItems('chatMsgs', `WHERE chatID = ${chatID} ORDER BY id DESC LIMIT ${10}`, (err, items) => {
                         if(err) {
                             console.error(err.message);
@@ -175,6 +204,7 @@ io.sockets.on('connection', function(newSocket){
 
     // send message
     newSocket.on('send message', function(data){
+        //const data = JSON.parse( decodeRequest(newSocket.id, hashData.hash) );
         createItem(`chatMsgs`, [data.chatID, data.login, data.message, data.time], `(chatID, name, message, time) VALUES (?, ?, ?, ?)`, (err) => {
             if(err) {
                 console.error(err.message);
